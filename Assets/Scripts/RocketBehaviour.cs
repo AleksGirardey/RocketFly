@@ -1,12 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class RocketBehaviour : MonoBehaviour
 {
 	[SerializeField] private Rigidbody rb = null;
 	[SerializeField] private Transform spawnPoint = null;
 	[SerializeField] private Transform trailPos = null;
+	[SerializeField] private GameObject rocketCloud = null;
 	[SerializeField] private GameObject explosion = null;
 	[SerializeField] private GameObject trail = null;
 	[SerializeField] private Color trailErrorColor = Color.white;
@@ -15,13 +17,18 @@ public class RocketBehaviour : MonoBehaviour
 	[SerializeField] private float thrusterPower = 100;
 	[SerializeField] private float sideThrusterPower = 100;
 	[SerializeField] private float maxSpeed = 10;
-	
+	[SerializeField] private float boostPower = 1;
+	[SerializeField] private float boostRate = 5;
+	[SerializeField] private Image boostImage;
+
 	private Transform currentTrail;
 	private Quaternion initRot;
 	private bool activePower;
 	private float direction;
 	private bool isDestroyed = false;
 	private bool detectionActive = false;
+	private float boostTime;
+
 
 	private void Start()
 	{
@@ -68,6 +75,16 @@ public class RocketBehaviour : MonoBehaviour
 
 		direction = -Input.GetAxis("Horizontal");
 
+		if(boostTime > 0) boostTime -= Time.deltaTime;
+
+		boostImage.fillAmount = Mathf.Abs((boostTime / boostRate) - 1);
+
+		if(Input.GetKeyDown(KeyCode.Space) && boostTime <= 0)
+		{
+			boostTime = boostRate;
+			rb.AddRelativeForce(Vector3.up * boostPower, ForceMode.Impulse);
+		}
+
 		if(activePower || direction != 0)
 		{
 			if(!vfx.isPlaying) vfx.Play();
@@ -102,6 +119,11 @@ public class RocketBehaviour : MonoBehaviour
 		StartCoroutine(DestructionDelay());
 	}
 
+	private void DestroyCloud(GameObject obj)
+	{
+		Destroy(obj);
+	}
+
 	private IEnumerator DestructionDelay()
 	{
 		GameObject newTrail = Instantiate(trail, trailPos.position, Quaternion.identity);
@@ -110,8 +132,11 @@ public class RocketBehaviour : MonoBehaviour
 		newTrail.GetComponent<TrailRenderer>().endColor = trailErrorColor;
 
 		yield return new WaitForSeconds(1);
-		currentTrail = null;
+
+		GameObject newCloud = Instantiate(rocketCloud, transform.position, Quaternion.identity);
+		newCloud.GetComponent<ActionDelay>().OnStartAction += DestroyCloud;
 		Instantiate(explosion, transform.position, Quaternion.identity);
+		currentTrail = null;
 		vfx.Stop();
 		rb.velocity = Vector3.zero;
 		rb.isKinematic = true;		
