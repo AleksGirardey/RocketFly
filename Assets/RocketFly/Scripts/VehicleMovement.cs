@@ -9,27 +9,35 @@ public class VehicleMovement : MonoBehaviour {
     public float maxSpeed = 500;
     public bool goingLeft;
 
-    private Vector3 _startPosition;
-    private Vector3 _endPosition;
+    private Vector3 startPosition;
+    private Vector3 endPosition;
+
+    private float speed;
     
     public void Awake() {
         Vector3 rightPosition = rightPoint.position;
         Vector3 leftPosition = leftPoint.position;
 
-        _startPosition = goingLeft ? rightPosition : leftPosition;
-        _endPosition = goingLeft ? leftPosition : rightPosition;
+        startPosition = goingLeft ? rightPosition : leftPosition;
+        endPosition = goingLeft ? leftPosition : rightPosition;
 
-        transform.position = _startPosition;
+        speed = Random.Range(minSpeed, maxSpeed);
+        
+        transform.position = startPosition;
     }
 
     public void FixedUpdate() {
         Vector3 pos = transform.position;
 
-        if (pos.x >= _endPosition.x - 1 && pos.x <= _endPosition.x + 1) {
-            transform.position = _startPosition;
+        if (Vector3.Distance(pos, endPosition) < 1) {
+            transform.DOKill();
+            transform.position = startPosition;
+            speed = Random.Range(minSpeed, maxSpeed);
         }
 
-        float move = Time.fixedDeltaTime * Random.Range(minSpeed, maxSpeed);
+        pos = transform.position;
+
+        float move = Time.fixedDeltaTime * speed;
         move = goingLeft ? -move : move;
 
         pos = new Vector3(

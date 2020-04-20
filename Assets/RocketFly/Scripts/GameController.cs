@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -45,6 +46,8 @@ public class GameController : MonoBehaviour
 
 	private void Awake()
 	{
+		DOTween.SetTweensCapacity(1250, 50);
+		
 		if(Instance != null)
 		{
 			Destroy(gameObject);

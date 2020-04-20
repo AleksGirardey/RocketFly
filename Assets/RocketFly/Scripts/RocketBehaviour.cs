@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -28,6 +29,7 @@ public class RocketBehaviour : MonoBehaviour
 	private bool isDestroyed = false;
 	private bool detectionActive = false;
 	private float boostTime;
+	private bool hasLeftSpawn;
 
 
 	private void Start()
@@ -42,6 +44,7 @@ public class RocketBehaviour : MonoBehaviour
 	{
 		isDestroyed = false;
 		detectionActive = false;
+		hasLeftSpawn = false;
 		GameObject instance = Instantiate(trail, trailPos.position, Quaternion.identity);
 		currentTrail = instance.transform;
 		StartCoroutine(StartDetectionDelay());
@@ -100,6 +103,15 @@ public class RocketBehaviour : MonoBehaviour
 		if(other.CompareTag("Obstacle") && !isDestroyed)
 		{
 			DestroyRocket();
+		} else if (other.CompareTag("SpawnPoint")) {
+			hasLeftSpawn = false;
+		}
+	}
+
+	private void OnTriggerExit(Collider other) {
+		if (other.CompareTag("SpawnPoint")) {
+			Debug.Log($"COUCOU {hasLeftSpawn}");
+			hasLeftSpawn = true;
 		}
 	}
 
@@ -133,8 +145,10 @@ public class RocketBehaviour : MonoBehaviour
 
 		yield return new WaitForSeconds(1);
 
-		GameObject newCloud = Instantiate(rocketCloud, transform.position, Quaternion.identity);
-		newCloud.GetComponent<ActionDelay>().OnStartAction += DestroyCloud;
+		if (hasLeftSpawn) {
+			GameObject newCloud = Instantiate(rocketCloud, transform.position, Quaternion.identity);
+			newCloud.GetComponent<ActionDelay>().OnStartAction += DestroyCloud;
+		}
 		Instantiate(explosion, transform.position, Quaternion.identity);
 		currentTrail = null;
 		vfx.Stop();

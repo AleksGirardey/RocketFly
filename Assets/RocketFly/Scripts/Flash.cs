@@ -27,6 +27,5 @@ public class Flash : MonoBehaviour {
         }
 
         _renderer.color = new Color(255,255,255, alpha);
-        Debug.Log($"{_renderer.color}");
     }
 }
